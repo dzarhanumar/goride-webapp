@@ -32,3 +32,30 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+  docker-build-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test        # Hanya run kalau CI passed
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            dzarhanumar/goride-webapp:latest
+            dzarhanumar/goride-webapp:${{ github.sha }}
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
